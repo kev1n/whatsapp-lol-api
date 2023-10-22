@@ -2,14 +2,19 @@ var express = require("express");
 var router = express.Router();
 const { fork } = require("child_process");
 const qrcodeParser = require("qrcode-terminal");
+const cors = require("cors");
 
 /* GET home page. */
 router.get("/", function (req, res, next) {
   res.render("index", { title: "Express" });
 });
 
+let connected = false
 /* GET test page and initialize WhatsApp Web client in a child process */
-router.get("/test", function (req, res, next) {
+router.get("/test", cors(), function (req, res, next) {
+  if (connected) return
+  connected = true
+
   // Fork a child process to run the WhatsApp client
   const childProcess = fork("./routes/whatsappClient.js");
   
@@ -22,6 +27,7 @@ router.get("/test", function (req, res, next) {
       qrcodeParser.generate(qrCode, { small: true });
       //send the QR code to the client without the QR RECEIVED text
       res.send(qrCode);
+      
     }
   });
 
